@@ -17,6 +17,10 @@ from django.utils.functional import curry
 from django.utils.importlib import import_module
 from django.utils.translation import ugettext_lazy as _
 
+# add rule for TagField
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules([], ["^photologue\.TagField"])
+
 # Required PIL classes may or may not be available from the root namespace
 # depending on the installation method used.
 try:
@@ -123,6 +127,15 @@ for n in dir(ImageFilter):
             filter_names.append(klass.__name__)
 IMAGE_FILTERS_HELP_TEXT = _('Chain multiple filters using the following pattern "FILTER_ONE->FILTER_TWO->FILTER_THREE". Image filters will be applied in order. The following filters are available: %s.' % (', '.join(filter_names)))
 
+class Set(models.Model):
+    name = models.CharField(_('name'), max_length=100, unique=True)
+    slug = models.SlugField(_('name slug'), unique=True, help_text=_('A "slug" is a unique URL-friendly title for an object.'))
+    galleries = models.ManyToManyField('Gallery', related_name='gallery_groups', verbose_name=_('galleries'), null=True, blank=True)
+    date_added = models.DateTimeField(_('date published'), default=datetime.now)
+    is_public = models.BooleanField(_('is public'), default=True, help_text=(_('Public groups will be displayed in the default views.')))
+    
+    def __unicode__(self):
+        return self.name 
 
 class Gallery(models.Model):
     date_added = models.DateTimeField(_('date published'), default=datetime.now)
