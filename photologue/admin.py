@@ -8,7 +8,7 @@ class SetAdmin(admin.ModelAdmin):
     list_display = ('name', 'date_added', 'is_public')
     list_filter = ('date_added', 'is_public')
     date_hierarchy = 'date_added'
-    prepopulate_fields = {'slug': ('name',)}
+    prepopulated_fields = {'slug': ('name',)}
 
 class GalleryAdmin(admin.ModelAdmin):
     list_display = ('title', 'date_added', 'photo_count', 'is_public')
