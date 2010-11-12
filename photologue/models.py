@@ -136,10 +136,28 @@ class Set(models.Model):
     
     def __unicode__(self):
         return self.name 
+        
+    def gallery_count(self, public=True):
+        if public:
+            return self.public_galleries().count()
+        else:
+            return self.galleries.all().count()
+    gallery_count.short_description = _('count')
+
+    def public_galleries(self):
+        return self.galleries.filter(is_public=True)
+        
+    def photo_count(self, public=True):
+        photos = Photo.objects.all()
+        if public:
+            photos.filter(is_public=public)
+        galleries_ids = self.galleries.values_list('id', flat=True)
+        return photos.filter(galleries__id__in=galleries_ids).count()
+    
 
 class Gallery(models.Model):
     date_added = models.DateTimeField(_('date published'), default=datetime.now)
-    title = models.CharField(_('title'), max_length=100, unique=True)
+    title = models.CharField(_('title'), max_length=100)
     title_slug = models.SlugField(_('title slug'), unique=True,
                                   help_text=_('A "slug" is a unique URL-friendly title for an object.'))
     description = models.TextField(_('description'), blank=True)
@@ -156,13 +174,20 @@ class Gallery(models.Model):
         verbose_name_plural = _('galleries')
 
     def __unicode__(self):
-        return self.title
+        return "%s (%s)" % (self.title, self.title_slug)
 
     def __str__(self):
         return self.__unicode__()
 
     def get_absolute_url(self):
         return reverse('pl-gallery', args=[self.title_slug])
+        
+    def set_name(self):
+        sets = self.gallery_groups.all()
+        if sets and sets.count() > 0:
+            return sets[0].name
+        else:
+            return None
 
     def latest(self, limit=LATEST_LIMIT, public=True):
         if not limit:
@@ -180,6 +205,13 @@ class Gallery(models.Model):
         else:
             photo_set = self.photos.all()
         return random.sample(photo_set, count)
+        
+    def random_image(self, public=True):
+        photo = self.sample(count=1, public=public)
+        if photo:
+            return photo[0]
+        else:
+            return None
 
     def photo_count(self, public=True):
         if public:
