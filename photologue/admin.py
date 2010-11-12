@@ -4,6 +4,12 @@
 from django.contrib import admin
 from models import *
 
+class SetAdmin(admin.ModelAdmin):
+    list_display = ('name', 'date_added', 'is_public')
+    list_filter = ('date_added', 'is_public')
+    date_hierarchy = 'date_added'
+    prepopulate_fields = {'slug': ('name',)}
+
 class GalleryAdmin(admin.ModelAdmin):
     list_display = ('title', 'date_added', 'photo_count', 'is_public')
     list_filter = ['date_added', 'is_public']
@@ -62,6 +68,7 @@ class GalleryUploadAdmin(admin.ModelAdmin):
         return False # To remove the 'Save and continue editing' button
 
 
+admin.site.register(Set, SetAdmin)
 admin.site.register(Gallery, GalleryAdmin)
 admin.site.register(GalleryUpload, GalleryUploadAdmin)
 admin.site.register(Photo, PhotoAdmin)
